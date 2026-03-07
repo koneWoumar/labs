@@ -1,0 +1,8 @@
+alias ll='ls -l'
+alias la='ls -la'
+alias dfh='df -g'
+alias grep='grep --color=auto 2>/dev/null'
+
+
+
+

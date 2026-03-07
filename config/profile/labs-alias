@@ -1,0 +1,8 @@
+### Set alias here###
+
+alias labs='cd /labs'
+alias config='cd /labs/config'
+alias bin='cd /labs/bin'
+alias info='cd /labs/info'
+alias script='cd /labs/script'
+alias project='cd /labs/project'

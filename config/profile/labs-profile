@@ -1,0 +1,35 @@
+#############################################
+# Profil personnalisé
+# Auteur : indus
+#############################################
+
+### Ajout des des variables d'environnement ###
+  
+if [ -f "/labs/config/profile/labs-env" ]; then
+     . "/labs/config/profile/labs-env"
+fi
+
+
+
+### Configuration du PATH avec les chemin des executable du labs ###
+
+export PATH=/labs/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin
+
+
+
+### Ajout des alias utiles ###
+
+if [ -f "/labs/config/profile/labs-alias" ]; then
+     . "/labs/config/profile/labs-alias"
+fi
+
+
+
+### Fonctions utiles ###
+
+if [ -f "/labs/config/profile/labs-fonctions" ]; then
+     . "/labs/config/profile/labs-fonctions"
+fi
+
+
+

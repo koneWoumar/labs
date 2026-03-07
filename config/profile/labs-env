@@ -1,0 +1,4 @@
+### Set environment variable here###
+#
+
+export myvariable=value
