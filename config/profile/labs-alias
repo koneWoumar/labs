@@ -3,6 +3,6 @@
 alias labs='cd /labs'
 alias config='cd /labs/config'
 alias bin='cd /labs/bin'
-alias man='cat /labs/infos/README.md'
+alias info='cd /labs/info'
 alias script='cd /labs/script'
 alias project='cd /labs/project'
