@@ -1,0 +1,144 @@
+# Qu’est-ce que le dictionnaire de données ?
+
+Le dictionnaire de données (Data Dictionary) est un ensemble de tables et de vues système qui contiennent les métadonnées de la base de données.
+👉 Les métadonnées sont des données sur les données.
+Exemples d’informations stockées :
+les tables
+les colonnes
+les index
+les contraintes
+les utilisateurs
+les privilèges
+les tablespaces
+les procédures stockées
+les triggers
+les vues
+Autrement dit :
+Le dictionnaire décrit toute la structure logique et administrative de la base.
+
+# 2. Où est stocké le dictionnaire ?
+
+Le dictionnaire est stocké dans la base elle-même :
+dans le tablespace SYSTEM
+sous forme de tables internes
+Ces tables appartiennent principalement au schéma :
+SYS
+Le schéma Oracle SYS schema possède les tables internes du dictionnaire.
+
+# 3. Comment sont administrées les données du dictionnaire ?
+
+Il existe un seul dictionnaire global pour toute la base.
+
+Mais Oracle fournit plusieurs vues différentes pour permettre aux utilisateurs d’accéder seulement aux informations qu’ils ont le droit de voir.
+
+# 4. Les 3 cathegories de vue
+
+Les vues de la base de données sont de la forme : user_* , all_* ,  dba_*
+
+Ainsi :
+
+user_*  : les vues contenants les objets du user courant
+
+all_*   : les vues contenants tous les objets accessible par l'utilisateur, ses propres objets + les objets accessibles via ses privilèges
+
+dba_*   : les vues contenants tous les objets de la base de la base de données
+
+
+# 5. Les vues particulieres
+
+user_views   : contient la listes des vues du user courant
+
+all_views    : contient tous les vues accessible par le user courant
+
+dba_views    : contient tous les vues de la base de données 
+
+DICT ou DICTIONARY : 
+
+
+# 6. Quelques vues importants
+
+
+### Les vues les plus utilisées
+
+----->  Objets 
+
+USER_OBJECTS
+ALL_OBJECTS
+DBA_OBJECTS
+
+----> Tables
+
+USER_TABLES
+ALL_TABLES
+DBA_TABLES
+
+----> Colonnes
+
+USER_TAB_COLUMNS
+ALL_TAB_COLUMNS
+DBA_TAB_COLUMNS
+
+----> Contraintes
+
+(USER/ALL/DBA)_CONSTRAINTS
+(USER/ALL/DBA)_CONS_COLUMNS
+
+----> Index
+
+(USER/ALL/DBA)_INDEXES
+(USER/ALL/DBA)_IND_COLUMNS
+
+
+### Les vues pour la sécurité
+
+----> Utilisateurs
+
+DBA_USERS
+
+----> Rôles
+
+DBA_ROLES
+DBA_ROLE_PRIVS
+
+----> Privilèges sur objets
+
+DBA_TAB_PRIVS
+
+
+----> Privilèges system
+
+DBA_SYS_PRIVS
+
+
+### Les vues pour le stockage
+
+----> Tablespaces
+
+DBA_TABLESPACES
+
+----> Datafiles
+
+DBA_DATA_FILES
+
+
+### Les vues dynamiques importants
+
+---->  Informations sur la base
+
+v$database;
+
+----> Informations sur l’instance
+
+v$instance;
+
+----> Sessions actives
+
+v$session;
+
+
+
+
+
+
+
+
