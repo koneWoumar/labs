@@ -1,4 +1,4 @@
-# Qu’est-ce que le dictionnaire de données ?
+# 1. Qu’est-ce que le dictionnaire de données ?
 
 Le dictionnaire de données (Data Dictionary) est un ensemble de tables et de vues système qui contiennent les métadonnées de la base de données.
 👉 Les métadonnées sont des données sur les données.
@@ -14,7 +14,7 @@ les procédures stockées
 les triggers
 les vues
 Autrement dit :
-Le dictionnaire décrit toute la structure logique et administrative de la base.
+Le dictionnaire décrit toute la structure logique et administrative de la base
 
 # 2. Où est stocké le dictionnaire ?
 
@@ -42,20 +42,9 @@ user_*  : les vues contenants les objets du user courant
 all_*   : les vues contenants tous les objets accessible par l'utilisateur, ses propres objets + les objets accessibles via ses privilèges
 
 dba_*   : les vues contenants tous les objets de la base de la base de données
+ 
 
-
-# 5. Les vues particulieres
-
-user_views   : contient la listes des vues du user courant
-
-all_views    : contient tous les vues accessible par le user courant
-
-dba_views    : contient tous les vues de la base de données 
-
-DICT ou DICTIONARY : 
-
-
-# 6. Quelques vues importants
+# 5. Quelques vues importants
 
 
 ### Les vues les plus utilisées
@@ -121,19 +110,64 @@ DBA_TABLESPACES
 DBA_DATA_FILES
 
 
-### Les vues dynamiques importants
+# 6. Comment exploiter les vues du dictionnaires ?
 
----->  Informations sur la base
+La vue special DICT permet de voir la liste des vues disponible et leur description.
+Cela permet alors de consulter la vue qui nous permet d'avoir les meta-données que nous cherchons.
 
-v$database;
+Les vues _views contiennent les vues SQL, c'est à dire les vues SQL qui sont créées par les utilisateurs sur les données de leurs tables.
 
-----> Informations sur l’instance
 
-v$instance;
+# Remarque :
 
-----> Sessions actives
+Il faut distinguer 3 choses :
 
-v$session;
+1️⃣  les vues utilisateur de la base        (vue sql)
+2️⃣  les vues du dictionnaire de données    (vue système)
+3️⃣  la vue spéciale DICT                   (vue speciale)
+
+
+En effet :
+
+1️⃣  
+
+Les vues du dictionnaires (*_*) sont des vues systèmes qui decrivent la structure de la base de données.
+Ces vues :
+sont fournies par Oracle
+décrivent la structure de la base
+permettent d'interroger les métadonnées
+
+2️⃣ 
+
+Les vues utilisateurs sont des vues crées par des utilisateurs sur leurs tables, ce sont des objets sql appartenant à l'utilisateur. On peut lister ces objets avec les vues du dictionnaire *_views.
+Ainsi user_views contients les vues sql créées par l'utilisateur courant et all_views contient la liste des vues qui lui sont accessibles.
+
+
+3️⃣ 
+
+La vue DICT sert uniquement à :
+
+👉 explorer le dictionnaire lui-même
+
+Elle contient :
+
+le nom des vues du dictionnaire
+
+leur description
+
+Donc :
+
+➡ DICT ne contient pas la liste des objets de la base
+➡ DICT contient la liste des vues fournies par le dictionnaire
+
+
+
+
+
+
+# ACTIVITY ON VIEWS :
+
+
 
 
 
