@@ -162,14 +162,30 @@ Donc :
 
 
 
+On resumer par le schema suivant:
+
+
+
+BASE ORACLE
+│
+├── Objets utilisateur
+│     tables
+│     vues
+│     index
+│
+├── Vues du dictionnaire
+│     USER_TABLES
+│     USER_OBJECTS
+│     USER_VIEWS
+│
+└── Vue d’exploration
+      DICT
+      (liste les vues du dictionnaire)
+
 
 
 
 # ACTIVITY ON VIEWS :
-
-
-
-
 
 
 
