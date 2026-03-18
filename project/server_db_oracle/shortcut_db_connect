@@ -1,0 +1,1 @@
+sqlplus system/Oracle123@localhost:1521/ORCLPDB1
