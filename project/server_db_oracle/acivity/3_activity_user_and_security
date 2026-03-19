@@ -1,0 +1,69 @@
+Dans Oracle, la sécurité repose sur 3 piliers fondamentaux :
+
+✅ 1. Authentification
+
+→ Vérifier qui est l’utilisateur
+
+✅ 2. Autorisation
+
+→ Définir ce que l’utilisateur peut faire
+
+✅ 3. Audit
+
+→ Tracer ce que l’utilisateur a fait
+
+
+
+Oracle sécurité utilisateur =
+
+👤 Utilisateurs
+
+1. Authentification locale, classique via mot de pass (IDENTIFIED BY password)
+2. Authentification externe via l'OS (IDENTIFIED EXTERNALLY)
+3. Authentification globale via LDAP / AD (IDENTIFIED GLOBALLY)
+
+
+🔑 Privilèges
+
+🔸 1 Privilèges système
+
+→ Permettent d’effectuer des actions globales (actions sur le schema)
+Exemples :
+CREATE SESSION
+CREATE TABLE
+CREATE USER
+DROP TABLE
+
+🔸 2 Privilèges objets
+
+→ Permet d'effectuer des actions sur des objets spécifiques (table, vue…)
+Exemples :
+SELECT
+INSERT
+UPDATE
+DELETE
+
+
+🧩 Rôles
+
+→ Permet de regrouper des privilèges pour un ensemble d'utilisateur
+Exemples :
+CREATE ROLE dev_role;
+GRANT SELECT, INSERT ON employees TO dev_role;
+
+
+
+🔒 Profils
+
+
+
+
+🧾 Audit
+
+
+
+
+
+
+
++ un tp sur la gestion des user (CRUD), role (CRUDE), privilege(CRUDE), profile(crud)
