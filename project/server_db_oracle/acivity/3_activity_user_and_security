@@ -55,14 +55,12 @@ GRANT SELECT, INSERT ON employees TO dev_role;
 
 🔒 Profils
 
-
+→ Permet de controler les mots de pass et les limitation des ressources systeme pour un utilisateur
 
 
 🧾 Audit
 
-
-
-
+→ Permet de controler qui fait quoi..
 
 
 
