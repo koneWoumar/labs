@@ -1,1 +1,11 @@
+
+# Pour la connexion au container non root
+
 sqlplus system/Oracle123@localhost:1521/ORCLPDB1
+
+# Pour passer au contanier non root une fois connecté root:
+
+SHOW CON_NAME;
+ALTER SESSION SET CONTAINER = ORCLPDB1;
+
+

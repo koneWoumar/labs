@@ -1,0 +1,96 @@
+### A quoi sert ce projet ?
+
+Ce projet permet d'executer des requetes sql sur un ou plusieurs base de données de façon reentrant.
+
+
+### Architecure du projet
+
+
+
+projet/
+│
+├── config/
+│   └── projet.properties
+│
+├── scripts/
+│   ├── deployerBase.sh
+│   ├── parser.sh
+│   ├── oracle.sh
+│   └── logger.sh
+│
+├── sql/
+│   └── requetes.deploy
+│
+└── logs/
+
+
+
+### Formulation des requetes à executer. 
+
+
+Chaque bloc de requete commence par <>, qui represente l'ente de la requete et se termine par /.
+Dans l'entete de chaque requete, il faut declarer l'utilisateur (schema), ID du bloc de requete,un commentaire sur ce bloc de requete.
+
+exemple :
+
+---------------------------------
+
+< id="25" schema="MYUSER" commentaire="Creation table client">
+
+CREATE TABLE CLIENT(
+ID NUMBER PRIMARY KEY,
+NOM VARCHAR2(100)
+);
+/
+
+CREATE INDEX IDX_CLIENT
+ON CLIENT(ID);
+/
+
+< id="26" schema="MYUSER" commentaire="Ajout colonne">
+
+ALTER TABLE CLIENT
+ADD EMAIL VARCHAR2(100);
+/
+
+---------------------------------
+
+
+
+### Configuration du projet
+
+La configuration se trouve dans le fichier projet.properties.
+Pour chaque, schema figurant dans le fichier des requetes, il faut declarer le username, le password, le db_port, le service oracle, le serveur de la base de donnees.
+si les trois derniers propriete ne sont pas declarees pour un schema, les valeur par defaut seront utilisées.
+
+exemple :
+
+
+------------------
+
+
+oracle.host=localhost
+oracle.port=1521
+oracle.service=XE
+
+system.db.username=system
+system.db.password=xxxx
+
+
+gaza.db.username=gaza
+gaza.db.password=gazaxxx
+gaza.db.host=localhost
+gaza.db.port=1521
+gaza.db.oracle.service=XE
+
+
+
+-----------------
+
+
+
+### Prerequis pour le fonctionnement du projet.
+
+
+
+

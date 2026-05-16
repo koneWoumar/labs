@@ -1,0 +1,24 @@
+< id="24" schema="system" commentaire="Creation du user gaza">
+
+CREATE USER gaza IDENTIFIED BY gaza123;
+GRANT DBA TO gaza;
+
+/
+
+< id="25" schema="gaza" commentaire="Creation table client">
+
+CREATE TABLE CLIENT(
+ID NUMBER PRIMARY KEY,
+NOM VARCHAR2(100)
+);
+/
+
+CREATE INDEX IDX_CLIENT
+ON CLIENT(ID);
+/
+
+< id="26" schema="gaza" commentaire="Ajout colonne">
+
+ALTER TABLE CLIENT
+ADD EMAIL VARCHAR2(100);
+/
