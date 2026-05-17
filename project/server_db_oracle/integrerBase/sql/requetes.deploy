@@ -1,11 +1,10 @@
-< id="24" schema="system" commentaire="Creation du user gaza">
+< id="24" schema="system" commentaire="Creation user">
 
-CREATE USER gaza IDENTIFIED BY gaza123;
-GRANT DBA TO gaza;
-
+CREATE USER mata IDENTIFIED BY mata123;
+GRANT DBA TO mata;
 /
 
-< id="25" schema="gaza" commentaire="Creation table client">
+< id="25" schema="mata" commentaire="Creation table">
 
 CREATE TABLE CLIENT(
 ID NUMBER PRIMARY KEY,
@@ -15,10 +14,4 @@ NOM VARCHAR2(100)
 
 CREATE INDEX IDX_CLIENT
 ON CLIENT(ID);
-/
-
-< id="26" schema="gaza" commentaire="Ajout colonne">
-
-ALTER TABLE CLIENT
-ADD EMAIL VARCHAR2(100);
 /

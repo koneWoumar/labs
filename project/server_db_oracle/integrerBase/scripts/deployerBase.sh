@@ -1,86 +1,77 @@
 #!/bin/bash
 
-#source ../config/projet.properties
-
 FILE="../sql/requetes.deploy"
+CONFIG="../config/projet.properties"
 
 while IFS='|' read ID SCHEMA COMMENT SQL
 do
 
-## Rentre dans une boucle parcourant le fichier requete.deploy
+echo ""
+echo "===================================="
+echo "[INFO] Requête : $ID"
+echo "[INFO] Schema  : $SCHEMA"
+echo "[INFO] Comment : $COMMENT"
 
-# On recupere les donnees de l'entete du fichier
+USERNAME=$(grep "${SCHEMA}.db.username" "$CONFIG" | cut -d= -f2)
 
+PASSWORD=$(grep "${SCHEMA}.db.password" "$CONFIG" | cut -d= -f2)
 
-SQL=$(echo "$SQL" | tr '§' '\n')
+HOST=$(grep "${SCHEMA}.db.host" "$CONFIG" | cut -d= -f2)
 
-echo "================================"
-echo "ID : $ID"
-echo "Schema : $SCHEMA"
+PORT=$(grep "${SCHEMA}.db.port" "$CONFIG" | cut -d= -f2)
 
-
-# On recupere les donnees db connexion pour le schema
-
-
-USERNAME=$(grep "${SCHEMA}.db.username" \
-../config/projet.properties \
-| cut -d= -f2)
-
-PASSWORD=$(grep "${SCHEMA}.db.password" \
-../config/projet.properties \
-| cut -d= -f2)
+SERVICE=$(grep "${SCHEMA}.db.oracle.service" "$CONFIG" | cut -d= -f2)
 
 
-# Pour ces donnees ci-dessous, on recupere la valeur specifique si non existante, la valeur par defaut
+#############################################
+# Vérification table VERSION_REQUETE
+#############################################
 
-
-DB_HOST=$(grep "${SCHEMA}.db.host" \
-../config/projet.properties \
-| cut -d= -f2)
-
-
-
-DB_PORT=$(grep "${SCHEMA}.db.port" \
-../config/projet.properties \
-| cut -d= -f2)
-
-ORACLE_SID=$(grep "${SCHEMA}.db.oracle.service" \
-../config/projet.properties \
-| cut -d= -f2)
-
-
-# On verifie que la table version_requete existe, sinon on la cree.
-
-echo "[INFO] Vérification table"
+echo "[INFO] Vérification VERSION_REQUETE"
 
 sqlplus -S \
-${USERNAME}/${PASSWORD}@//localhost:1521/ORCLPDB1 <<EOF
+${USERNAME}/${PASSWORD}@//${HOST}:${PORT}/${SERVICE} <<EOF
 
+SET DEFINE OFF
 WHENEVER SQLERROR CONTINUE
 
 DECLARE
+
 c NUMBER;
+
 BEGIN
 
 SELECT COUNT(*)
+
 INTO c
+
 FROM user_tables
+
 WHERE table_name='VERSION_REQUETE';
 
 IF c=0 THEN
 
 EXECUTE IMMEDIATE '
 
-CREATE TABLE version_requete(
+CREATE TABLE VERSION_REQUETE(
 
-id_requete NUMBER PRIMARY KEY,
-etat VARCHAR2(5),
-commentaire VARCHAR2(500),
-date_execution DATE,
-date_fin DATE,
-message_erreur CLOB
+ID_REQUETE NUMBER PRIMARY KEY,
 
-)';
+ETAT VARCHAR2(5),
+
+COMMENTAIRE VARCHAR2(500),
+
+DATE_EXECUTION DATE,
+
+DATE_FIN DATE,
+
+MESSAGE_ERREUR CLOB
+
+)
+
+';
+
+COMMIT;
 
 END IF;
 
@@ -92,67 +83,109 @@ EXIT
 EOF
 
 
-# On verifie si ID de la requete existe dans la table version_requete.
-
+#############################################
+# Vérifie si déjà OK
+#############################################
 
 ALREADY_DONE=$(sqlplus -S \
-${USERNAME}/${PASSWORD}@//localhost:1521/ORCLPDB1 <<EOF
+${USERNAME}/${PASSWORD}@//${HOST}:${PORT}/${SERVICE} <<EOF
 
 SET PAGESIZE 0
 SET FEEDBACK OFF
+SET HEADING OFF
 
 SELECT COUNT(*)
 
-FROM version_requete
+FROM VERSION_REQUETE
 
-WHERE id_requete=$ID
-AND etat='OK';
+WHERE ID_REQUETE=$ID
+AND ETAT='OK';
 
 EXIT
 
 EOF
 )
 
-# si ID de la requete existe, on va sur la requete suivante
-
 ALREADY_DONE=$(echo "$ALREADY_DONE"|xargs)
+
 
 if [ "$ALREADY_DONE" = "1" ]
 then
 
-echo "[INFO] Requête $ID déjà exécutée"
+echo "[INFO] Requête déjà exécutée"
 
 continue
 
 fi
 
-# si ID de la requete est non existante, on execute la requete en cours de traitement.
-# si le resultat est sans erreur, insert la requete dans version_schema avec ok .
 
-echo "[INFO] Exécution"
+#############################################
+# Exécution SQL
+#############################################
 
-sqlplus -S \
-${USERNAME}/${PASSWORD}@//localhost:1521/ORCLPDB1 <<EOF
+echo "[INFO] Exécution ..."
 
+RESULT=$(sqlplus -S \
+${USERNAME}/${PASSWORD}@//${HOST}:${PORT}/${SERVICE} <<EOF
+
+SET DEFINE OFF
 WHENEVER SQLERROR EXIT SQL.SQLCODE
 
 $SQL
 
-MERGE INTO version_requete v
+EXIT
+
+EOF
+)
+
+RET=$?
+
+
+#############################################
+# Succès
+#############################################
+
+if [ $RET -eq 0 ]
+then
+
+echo "[OK] Requête $ID"
+
+sqlplus -S \
+${USERNAME}/${PASSWORD}@//${HOST}:${PORT}/${SERVICE} <<EOF
+
+SET DEFINE OFF
+
+BEGIN
+
+MERGE INTO VERSION_REQUETE v
+
 USING dual
-ON (v.id_requete=$ID)
+
+ON (v.ID_REQUETE=$ID)
 
 WHEN MATCHED THEN
 
 UPDATE SET
 
-etat='OK',
-commentaire='$COMMENT',
-date_fin=SYSDATE
+ETAT='OK',
+COMMENTAIRE='$COMMENT',
+DATE_FIN=SYSDATE,
+MESSAGE_ERREUR=NULL
 
 WHEN NOT MATCHED THEN
 
-INSERT VALUES(
+INSERT(
+
+ID_REQUETE,
+ETAT,
+COMMENTAIRE,
+DATE_EXECUTION,
+DATE_FIN,
+MESSAGE_ERREUR
+
+)
+
+VALUES(
 
 $ID,
 'OK',
@@ -165,49 +198,83 @@ NULL
 
 COMMIT;
 
+END;
+/
+
 EXIT
 
 EOF
 
 
-# si la requete retourne une erreur, enregistrer la requete avec ko dans version_requete
+#############################################
+# Echec
+#############################################
 
-
-RET=$?
-
-if [ $RET -ne 0 ]
-then
+else
 
 echo "[ERREUR] requête $ID"
 
-sqlplus -S \
-${USERNAME}/${PASSWORD}@//localhost:1521/ORCLPDB1 <<EOF
+echo "$RESULT"
 
-MERGE INTO version_requete v
+ERROR_MSG=$(echo "$RESULT" \
+| grep ORA- \
+| head -1 \
+| sed "s/'/''/g")
+
+
+sqlplus -S \
+${USERNAME}/${PASSWORD}@//${HOST}:${PORT}/${SERVICE} <<EOF
+
+SET DEFINE OFF
+
+BEGIN
+
+MERGE INTO VERSION_REQUETE v
+
 USING dual
-ON (v.id_requete=$ID)
+
+ON (v.ID_REQUETE=$ID)
 
 WHEN MATCHED THEN
+
 UPDATE SET
 
-etat='KO',
-message_erreur='Erreur SQL',
-date_fin=SYSDATE
+ETAT='KO',
+
+COMMENTAIRE='$COMMENT',
+
+DATE_FIN=SYSDATE,
+
+MESSAGE_ERREUR=q'[$ERROR_MSG]'
 
 WHEN NOT MATCHED THEN
 
-INSERT VALUES(
+INSERT(
+
+ID_REQUETE,
+ETAT,
+COMMENTAIRE,
+DATE_EXECUTION,
+DATE_FIN,
+MESSAGE_ERREUR
+
+)
+
+VALUES(
 
 $ID,
 'KO',
 '$COMMENT',
 SYSDATE,
 SYSDATE,
-'Erreur SQL'
+q'[$ERROR_MSG]'
 
 );
 
 COMMIT;
+
+END;
+/
 
 EXIT
 
@@ -218,3 +285,8 @@ exit 1
 fi
 
 done < <(./parser.sh "$FILE")
+
+
+echo ""
+echo "===================================="
+echo "[FIN] Déploiement terminé"
