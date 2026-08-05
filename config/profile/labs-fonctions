@@ -1,1 +1,13 @@
 ### Set fonctions here###
+
+sql() {
+
+  auth=${1}  
+  hostname=localhost
+  port=1521
+  SID=ORCLPDB1
+
+  docker exec -it oracle-eee sqlplus "${auth}@${hostname}:${port}/${SID}"
+
+}
+
