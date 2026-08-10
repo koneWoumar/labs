@@ -1,0 +1,130 @@
+# ACTIVITY1
+
+In this activity, we will set up a samba AD and create users, then permit the users to connecte to the same linux machine (the AD machine):
+
+
+# The activity is the follow :
+
+
+Étape 1 : Préparer le systèmeSamba AD a besoin d'un nom d'hôte (hostname) correct et d'une IP fixe.Modifier le fichier des hôtes :
+
+sudo nano /etc/hosts
+
+Ajoutez (ou modifiez) la ligne correspondant à votre IP pour qu'elle ressemble à ceci :
+
+192.168.1.100  samba-dc.lab.local  samba-dc
+
+
+Étape 2 : Installer les paquets requis
+
+sudo apt update
+sudo apt install samba krb5-user winbind libpam-winbind libnss-winbind -y
+
+
+Étape 3 : Supprimer la configuration Samba par défaut
+
+sudo systemctl stop smbd nmbd winbind
+sudo systemctl disable smbd nmbd winbind
+sudo mv /etc/samba/smb.conf /etc/samba/smb.conf.bak
+
+
+Étape 4 : Provisionner le domaine Active Directory
+
+sudo samba-tool domain provision --use-rfc2307 --interactive
+
+
+Remplissez les informations demandées ainsi :
+
+Realm : LAB.LOCAL (En majuscules)
+Domain : LABServer 
+Role : dcDNS 
+Backend : SAMBA_INTERNALDNS 
+Forwarder IP : 1.1.1.1 (ou l'IP de votre box/routeur)
+Administrator 
+password : Choisissez un mot de passe fort (ex: Securite2026!)
+
+
+Étape 5 : Activer le service Active Directory
+
+
+sudo systemctl unmask samba-ad-dc
+sudo systemctl start samba-ad-dc
+sudo systemctl enable samba-ad-dc
+
+
+
+Étape 6 : Créer un utilisateur de testCréons l'utilisateur jdupont qui nous servira pour la suite :
+
+sudo samba-tool user create jdupont --password="MonMotDePasse123!"
+
+
+
+Partie 2 : Permettre à cet utilisateur de se connecter en SSH sur CE serveur
+
+sudo nano /etc/nsswitch.conf
+
+
+Cherchez les lignes passwd: et group: et ajoutez winbind à la fin :
+
+
+passwd:         files systemd winbind
+group:          files systemd winbind
+
+
+Étape 2 : Configurer la création automatique du dossier Home
+
+
+sudo pam-auth-update
+
+
+Dans l'interface qui s'affiche, descendez avec les flèches, cochez la case "create home directory on login" avec la barre d'espace, puis validez sur Ok.
+
+
+Étape 3 : Redémarrer les services
+
+sudo systemctl restart samba-ad-dc
+
+
+Étape 4 : Tester la visibilité de l'utilisateur
+
+
+getent passwd jdupont
+
+
+Si le terminal vous renvoie une ligne du style LAB\jdupont:*:3000011:..., c'est gagné ! Linux a trouvé l'utilisateur dans l'Active Directory.
+
+
+
+Étape 5 : Test de connexion SSH
+
+Depuis une autre machine (ou en ouvrant un autre terminal), tentez de vous connecter en SSH sur ce serveur avec l'utilisateur Samba :
+
+
+ssh LAB\\jdupont@192.168.1.100
+
+
+
+# Trouble shouting
+
+Étape 1 : Vérifier le mot de passe (En local sans SSH)
+
+Pour savoir si Samba accepte le mot de passe de jdupont, utilisez l'outil de test natif smbclient directement sur votre serveur Linux :
+
+
+smbclient //localhost/netlogon -U "LAB\jdupont"
+
+
+Si le mot de passe est bon : Vous obtiendrez une invite de commande qui ressemble à smb: \>. (Tapez exit pour sortir).
+Si le mot de passe est faux : Vous verrez l'erreur NT_STATUS_LOGON_FAILURE.
+
+Que faire si le mot de passe est faux ?
+
+Vous pouvez le réinitialiser instantanément avec cette commande :
+
+sudo samba-tool user setpassword jdupont --newpassword="MonMotDePasse123!"
+
+
+
+
+
+
