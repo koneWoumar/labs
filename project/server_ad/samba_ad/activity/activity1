@@ -1,127 +1,112 @@
-# ACTIVITY1
+# SAMBA AD — TP COMPLET
 
-In this activity, we will set up a samba AD and create users, then permit the users to connecte to the same linux machine (the AD machine):
+## 1. Présentation
 
+Objectif général
 
-# The activity is the follow :
+Mettre en place une infrastructure Linux intégrée à un domaine Samba Active Directory, puis utiliser les identités AD pour contrôler l'accès à des machines Linux et à une application.
 
+L'infrastructure permettra de démontrer :
 
-Étape 1 : Préparer le systèmeSamba AD a besoin d'un nom d'hôte (hostname) correct et d'une IP fixe.Modifier le fichier des hôtes :
+Active Directory avec Samba ;
+DNS intégré ;
+Kerberos ;
+Winbind ;
+NSS ;
+PAM ;
+SSH ;
+gestion des groupes AD ;
+sudo basé sur un groupe AD ;
+intégration d'une application avec les identités AD ;
+certificats et LDAPS ;
+contrôle des accès.
 
-sudo nano /etc/hosts
 
-Ajoutez (ou modifiez) la ligne correspondant à votre IP pour qu'elle ressemble à ceci :
+## 2. Architecture du TP
 
-192.168.1.100  samba-dc.lab.local  samba-dc
+                         ┌──────────────────────────┐
+                         │        VM01              │
+                         │      SAMBA AD DC         │
+                         │                          │
+                         │  Domain: LAB.LOCAL       │
+                         │  DNS                     │
+                         │  Kerberos                │
+                         │  LDAP                    │
+                         │  Samba AD                │
+                         │                          │
+                         │  10.10.93.118            │
+                         └────────────┬─────────────┘
+                                      │
+                              réseau privé
+                                      │
+                  ┌───────────────────┴───────────────────┐
+                  │                                       │
+          ┌───────▼────────┐                     ┌────────▼───────┐
+          │     VM02       │                     │      VM03      │
+          │ Linux Client   │                     │ Linux Server   │
+          │                │                     │                │
+          │ Winbind        │                     │ Winbind        │
+          │ NSS            │                     │ NSS            │
+          │ PAM            │                     │ PAM            │
+          │ SSH            │                     │ Zabbix/App     │
+          │                │                     │                │
+          └────────────────┘                     └────────────────┘
 
 
-Étape 2 : Installer les paquets requis
 
-sudo apt update
-sudo apt install samba krb5-user winbind libpam-winbind libnss-winbind -y
 
 
-Étape 3 : Supprimer la configuration Samba par défaut
 
-sudo systemctl stop smbd nmbd winbind
-sudo systemctl disable smbd nmbd winbind
-sudo mv /etc/samba/smb.conf /etc/samba/smb.conf.bak
+| Machine | IP             | Nom                  |
+| ------- | -------------- | -------------------- |
+| AD    | `10.10.93.118` | `samba-dc.lab.local` |
+| client    | `10.10.93.119` | `client01.lab.local` |
+| server    | `10.10.93.120` | `server01.lab.local` |
 
 
-Étape 4 : Provisionner le domaine Active Directory
 
-sudo samba-tool domain provision --use-rfc2307 --interactive
+Domaine : LAB.LOCAL
 
+NetBIOS : LAB
 
-Remplissez les informations demandées ainsi :
+DNS : 10.10.93.118
 
-Realm : LAB.LOCAL (En majuscules)
-Domain : LABServer 
-Role : dcDNS 
-Backend : SAMBA_INTERNALDNS 
-Forwarder IP : 1.1.1.1 (ou l'IP de votre box/routeur)
-Administrator 
-password : Choisissez un mot de passe fort (ex: Securite2026!)
+### 3. Phase 1 — Préparation des machines
 
 
-Étape 5 : Activer le service Active Directory
+Sur la machine AD :
 
+sudo hostnamectl set-hostname samba-dc
 
-sudo systemctl unmask samba-ad-dc
-sudo systemctl start samba-ad-dc
-sudo systemctl enable samba-ad-dc
+Sur la machine client :
 
+sudo hostnamectl set-hostname client01
 
+Sur la machine serveur :
 
-Étape 6 : Créer un utilisateur de testCréons l'utilisateur jdupont qui nous servira pour la suite :
+sudo hostnamectl set-hostname server01
 
-sudo samba-tool user create jdupont --password="MonMotDePasse123!"
+Verification sur les machines :
 
+hostname
+hostname -f
+hostname -s
 
+Resultats attendus :
 
-Partie 2 : Permettre à cet utilisateur de se connecter en SSH sur CE serveur
+samba-dc
+samba-dc.lab.local
+samba-dc
 
-sudo nano /etc/nsswitch.conf
 
+### 4. Phase 2 — Configuration DNS
 
-Cherchez les lignes passwd: et group: et ajoutez winbind à la fin :
+C'est une étape fondamentale.
 
+Les machines membres doivent utiliser le DNS Samba, à savoir la machine 10.10.93.118 .
 
-passwd:         files systemd winbind
-group:          files systemd winbind
 
 
-Étape 2 : Configurer la création automatique du dossier Home
-
-
-sudo pam-auth-update
-
-
-Dans l'interface qui s'affiche, descendez avec les flèches, cochez la case "create home directory on login" avec la barre d'espace, puis validez sur Ok.
-
-
-Étape 3 : Redémarrer les services
-
-sudo systemctl restart samba-ad-dc
-
-
-Étape 4 : Tester la visibilité de l'utilisateur
-
-
-getent passwd jdupont
-
-
-Si le terminal vous renvoie une ligne du style LAB\jdupont:*:3000011:..., c'est gagné ! Linux a trouvé l'utilisateur dans l'Active Directory.
-
-
-
-Étape 5 : Test de connexion SSH
-
-Depuis une autre machine (ou en ouvrant un autre terminal), tentez de vous connecter en SSH sur ce serveur avec l'utilisateur Samba :
-
-
-ssh LAB\\jdupont@192.168.1.100
-
-
-
-# Trouble shouting
-
-Étape 1 : Vérifier le mot de passe (En local sans SSH)
-
-Pour savoir si Samba accepte le mot de passe de jdupont, utilisez l'outil de test natif smbclient directement sur votre serveur Linux :
-
-
-smbclient //localhost/netlogon -U "LAB\jdupont"
-
-
-Si le mot de passe est bon : Vous obtiendrez une invite de commande qui ressemble à smb: \>. (Tapez exit pour sortir).
-Si le mot de passe est faux : Vous verrez l'erreur NT_STATUS_LOGON_FAILURE.
-
-Que faire si le mot de passe est faux ?
-
-Vous pouvez le réinitialiser instantanément avec cette commande :
-
-sudo samba-tool user setpassword jdupont --newpassword="MonMotDePasse123!"
 
 
 
