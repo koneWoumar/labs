@@ -106,6 +106,284 @@ C'est une étape fondamentale.
 Les machines membres doivent utiliser le DNS Samba, à savoir la machine 10.10.93.118 .
 
 
+Il faudrait en suite tester depuis les deux autres serveurs :  client et serveur.
+
+
+
+### 5. Phase 3 — Installation du Samba AD DC
+
+
+Sur le serveur ad :
+
+Installer les paquets nécessaires :
+
+
+
+Puis provisionner le domaine :
+
+
+samba-tool domain provision
+
+
+Configurer :
+
+Realm: LAB.LOCAL
+Domain: LAB
+Server Role: dc
+DNS backend: SAMBA_INTERNAL
+
+
+Verification :
+
+sudo testparm
+
+sudo testparm
+
+### 6. Phase 4 — Vérification du DNS Samba
+
+
+Afficher les zones :
+
+sudo samba-tool dns zonelist 127.0.0.1 -U Administrator
+
+Interroger la zone :
+
+sudo samba-tool dns query 127.0.0.1 lab.local @ ALL -U Administrator
+
+Tester :
+
+host samba-dc.lab.local
+
+puis :
+
+host -t SRV _ldap._tcp.lab.local
+
+et :
+
+host -t SRV _kerberos._udp.lab.local
+
+
+### 7. Phase 5 — Vérification de Kerberos
+
+
+Installer les outils Kerberos sur les machines concernées.
+
+
+Configurer /etc/krb5.conf.
+
+
+Tester :
+
+kinit Administrator@LAB.LOCAL
+
+Puis :
+
+klist
+
+On doit obtenir un ticket : krbtgt/LAB.LOCAL@LAB.LOCAL
+
+Tester la destruction :
+
+klist 
+
+Résultat attendu : No credentials cache found
+
+
+### 8. Phase 6 — Création des utilisateurs et groupes AD
+
+
+Créer deux groupes :
+
+samba-tool group add Linux-Users
+samba-tool group add Linux-Admins
+
+
+Créer des utilisateurs :
+
+samba-tool user create alice
+samba-tool user create bob
+samba-tool user create charlie
+
+
+
+Ajouter les membres :
+
+samba-tool group addmembers Linux-Users alice
+samba-tool group addmembers Linux-Admins bob
+
+
+Vérifier :
+
+samba-tool group listmembers Linux-Users
+samba-tool group listmembers Linux-Admins
+
+
+### 9. Phase 7 — Préparer VM02 pour rejoindre le domaine
+
+VM client doit utiliser le DNS du VM AD.
+
+Tester :
+
+host lab.local
+
+
+host -t SRV _ldap._tcp.lab.local
+
+Installer :
+
+
+Samba client ;
+Winbind ;
+Kerberos ;
+NSS Winbind ;
+PAM Winbind.
+
+
+### 10. Phase 8 — Joindre VM02 au domaine
+
+
+Il faudrait chercher à savoir quoi utiliser comme methode
+
+sudo net ads join -U Administrator
+
+Vérifier :
+
+net ads testjoin
+
+### Phase 9 — Configurer Winbind
+
+Configurer :
+
+/etc/samba/smb.conf  avec :
+
+security = ADS
+realm = LAB.LOCAL
+workgroup = LAB
+
+
+Puis configurer Winbind.
+
+Redémarrer :
+
+sudo systemctl restart winbind
+
+Test :
+
+wbinfo -t
+
+
+Puis :
+
+wbinfo -u
+
+Puis :
+
+wbinfo -g
+
+
+### 12. Phase 10 — Configurer NSS
+
+
+Modifier :
+
+passwd: compat winbind
+group:  compat winbind
+
+Tester :
+
+getent passwd alice
+getent passwd alice
+
+getent group Linux-Users
+
+id alice
+
+
+Objectif
+
+Démontrer :
+
+AD
+ ↓
+Winbind
+ ↓
+NSS
+ ↓
+Linux
+
+
+Linux doit maintenant être capable de résoudre un utilisateur AD comme s'il s'agissait d'un utilisateur local.
+
+
+### 13. Phase 11 — Configurer PAM
+
+Installer/configurer :
+
+libpam-winbind
+
+Puis vérifier :
+
+/etc/pam.d/common-auth
+/etc/pam.d/common-account
+/etc/pam.d/common-session
+
+
+Tester une authentification avec un utilisateur AD.
+
+
+### 14. Phase 12 — Configurer SSH
+
+Sur serveur client :
+
+/etc/ssh/sshd_config
+
+Activer :
+
+UsePAM yes
+PasswordAuthentication yes
+
+Puis autoriser uniquement :
+
+Linux-Users
+Linux-Admins
+
+Par exemple :
+
+AllowGroups Linux-Users Linux-Admins
+
+Redémarrer :
+
+sudo systemctl restart ssh
+
+ssh alice@client01
+
+ssh bob@client01
+
+
+### 15. Phase 13 — Donner sudo aux administrateurs AD
+
+
+C'est une partie importante du TP.
+
+Créer :
+
+/etc/sudoers.d/linux-admins
+
+avec :
+
+%Linux-Admins ALL=(ALL) ALL
+
+Puis :
+
+sudo visudo -c
+
+Tester avec bob :
+
+sudo whoami
+
+Resultat attendu :
+
+root
 
 
 
