@@ -55,8 +55,6 @@ contrôle des accès.
 
 
 
-
-
 | Machine | IP             | Nom                  |
 | ------- | -------------- | -------------------- |
 | AD    | `10.10.93.118` | `samba-dc.lab.local` |
