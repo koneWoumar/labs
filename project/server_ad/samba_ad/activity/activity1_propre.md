@@ -807,19 +807,19 @@ sudo samba-tool group list
 Créer un utilisateur pour `Linux-Users` :
 
 ```bash
-sudo samba-tool user create alice
+sudo samba-tool user create userkone
 ```
 
 Créer un utilisateur pour `Linux-Admins` :
 
 ```bash
-sudo samba-tool user create bob
+sudo samba-tool user create admkone
 ```
 
 Créer un utilisateur pour `Zabbix-Users` :
 
 ```bash
-sudo samba-tool user create charlie
+sudo samba-tool user create zabkone
 ```
 
 ---
@@ -827,15 +827,15 @@ sudo samba-tool user create charlie
 ## 4.3 Ajouter les utilisateurs aux groupes
 
 ```bash
-sudo samba-tool group addmembers Linux-Users alice
+sudo samba-tool group addmembers Linux-Users userkone
 ```
 
 ```bash
-sudo samba-tool group addmembers Linux-Admins bob
+sudo samba-tool group addmembers Linux-Admins admkone
 ```
 
 ```bash
-sudo samba-tool group addmembers Zabbix-Users charlie
+sudo samba-tool group addmembers Zabbix-Users zabkone
 ```
 
 ---
@@ -921,6 +921,22 @@ kinit bob@LAB.LOCAL
 ```
 
 ---
+
+
+## 4.7 Configuration optionnelle
+
+On peut indiquer le dns de samba comme serveur dns à utiliser par les application du systeme du serveur linux en l'indiquant dans le fichier /etc/resolv. Cela n'est pas absoluement necessaire mais l'es pour le serveur client qui sera join au domaine du servuer ad.
+
+
+Pour le faire, il faut modifier le fichier /etc/resolv
+
+```bash
+vim /etc/resolv.conf
+#nameserver 10.10.93.103
+#search lab.local
+```
+
+
 
 # CHAPITRE 2 — CONFIGURATION DU CLIENT LINUX
 
@@ -1062,6 +1078,49 @@ Configurer le DNS via le gestionnaire réseau utilisé par la distribution.
 
 ---
 
+Il faut configuer le dns du client pour qu'il utilise le dns de samba comme suite :
+
+
+- Desactiver le mini dns de systemd-resolve pour qu'il liber le port 53
+
+```bash
+sudo nano /etc/systemd/resolved.conf
+#DNSStubListener=no  <-- decommenter cette ligne
+
+sudo systemctl restart systemd-resolved
+```
+
+- Renommer le fichier par defaut (/etc/resolv) qui point sur la config du stub dns.
+
+```bash
+cd /etc/
+mv resolved.conf resolved.conf.saved_stub_dns_conf
+```
+
+- Recréer le fichier à nouveau dans lequel on dira de consulter le dns de samba
+
+```bash
+sudo cp /run/systemd/resolve/resolv.conf /etc/resolv.conf
+# mettre à jour le contenu comme suite :
+
+#nameserver 10.10.93.103
+#search lab.local
+```
+
+- Ouvrir les ports necessaire pour la communication avec le serveur
+
+```bash
+sudo ufw allow 53/tcp && sudo ufw allow 53/udp
+sudo ufw allow 88/tcp && sudo ufw allow 88/udp
+sudo ufw allow 389/tcp && sudo ufw allow 389/udp
+sudo ufw allow 445/tcp
+sudo ufw allow 464/tcp && sudo ufw allow 464/udp
+sudo ufw allow 636/tcp
+sudo ufw allow 1024:5000/tcp
+sudo ufw reload
+```
+
+
 ## 6.1 Tester le DNS
 
 ```bash
@@ -1163,6 +1222,26 @@ Configuration minimale :
     default_realm = LAB.LOCAL
     dns_lookup_realm = false
     dns_lookup_kdc = true
+
+
+## config que j'ai pris :
+
+[libdefaults]
+    default_realm = LAB.LOCAL
+    dns_lookup_realm = false
+    dns_lookup_kdc = true
+    rdns = false
+
+[realms]
+    LAB.LOCAL = {
+        kdc = smb-ad.lab.local
+        admin_server = smb-ad.lab.local
+    }
+
+[domain_realm]
+    .lab.local = LAB.LOCAL
+    lab.local = LAB.LOCAL
+
 ```
 
 Tester :
@@ -1332,7 +1411,7 @@ systemctl status winbind --no-pager
 # 14. Tester la relation de confiance
 
 ```bash
-wbinfo -t
+sudo wbinfo -t
 ```
 
 Résultat attendu :
@@ -1531,18 +1610,40 @@ UsePAM yes
 PasswordAuthentication yes
 ```
 
-Pour le moment, autoriser les deux groupes Linux :
+---
+
+# 22. Tester les connexions SSH
+
+Depuis une autre machine :
+
+```bash
+ssh LAB\\admkone@client.lab.local
+ssh LAB\\userkone@client.lab.local
+```
+
+Les deux connexions doivent être autorisées.
+
+
+---
+
+# 23. Configuration de la securité et restriction 
+
+## 1. Restriction SSH
+
+On permettre uniquement à un ensemble de groupe d'utilisateur de pouvoir se connecter .
+
+Pour le moment, autoriser les deux groupes Linux et l'utilisateur local ubuntu (via son group perosonel):
 
 ```text
-AllowGroups Linux-Users Linux-Admins
+AllowGroups linux-users linux-admins ubuntu
 ```
 
 Ainsi :
 
 ```text
-alice → Linux-Users → SSH autorisé
-bob   → Linux-Admins → SSH autorisé
-charlie → Zabbix-Users → SSH refusé
+admkone → Linux-Users → SSH autorisé
+userkone   → Linux-Admins → SSH autorisé
+zabkone → Zabbix-Users → SSH refusé
 ```
 
 Vérifier la configuration SSH :
@@ -1557,35 +1658,27 @@ Si aucune erreur n'est affichée :
 sudo systemctl restart ssh
 ```
 
----
-
-# 22. Tester les connexions SSH
-
-Depuis une autre machine :
+Tester l'accès avec les users authorisés :
 
 ```bash
-ssh alice@10.10.93.106
+ssh LAB\\admkone@client.lab.local
+ssh LAB\\userkone@client.lab.local
 ```
+Les deux connexions doivent être autorisées. La precisiond du domaine n'est pas obligatoire.
 
-Puis :
 
-```bash
-ssh bob@10.10.93.106
-```
-
-Les deux connexions doivent être autorisées.
-
-Tester :
+Tester l'accès avec les users non authorisés :
 
 ```bash
-ssh charlie@10.10.93.106
+ssh LAB\\zabkone@client.lab.local
 ```
 
 La connexion doit être refusée.
 
----
 
-# 23. Donner sudo au groupe Linux-Admins
+
+
+## 2. Donner sudo au groupe Linux-Admins
 
 Créer :
 
@@ -1614,7 +1707,7 @@ Résultat attendu :
 
 ---
 
-# 24. Tester les droits sudo
+## 3. Tester les droits sudo
 
 Se connecter avec `bob` :
 

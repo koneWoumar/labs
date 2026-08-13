@@ -5,7 +5,29 @@ INFO de L'activité
 
 Administrator Password : arrow00932Z*
 
-adm   ow00932Z*
+admkone : arrow00932Z*
+
+userkone : arrow00932Z*
+
+testkone : arrow00932Z*
+
+zabkone : arrow00932Z*
+
+
+
+------------------ Chaine de connexion local-------------
+
+ssh LAB\\admkone@client.lab.local
+
+ssh LAB\\userkone@client.lab.local
+
+
+-----------------Chaine de connexion depuis mon host local via le nat -------
+
+
+ssh LAB\\admkone@localhost -p 2066
+
+ssh LAB\\userkone@localhost -p 2066
 
 
 
@@ -13,3 +35,4 @@ adm   ow00932Z*
 Questions :
 
 comment systemd-resolve said ou trouvé le dns de mon reseau (routeur ..) ?
+comprendre les autres lignes du fichier /etc/nsswitch
