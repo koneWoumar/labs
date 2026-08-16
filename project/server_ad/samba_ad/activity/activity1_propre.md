@@ -849,7 +849,7 @@ sudo samba-tool group listmembers Linux-Users
 Résultat :
 
 ```text
-alice
+userkone
 ```
 
 Puis :
@@ -861,7 +861,7 @@ sudo samba-tool group listmembers Linux-Admins
 Résultat :
 
 ```text
-bob
+admkone
 ```
 
 Puis :
@@ -873,7 +873,7 @@ sudo samba-tool group listmembers Zabbix-Users
 Résultat :
 
 ```text
-charlie
+zabkone
 ```
 
 ---
@@ -881,15 +881,15 @@ charlie
 ## 4.5 Vérifier les utilisateurs
 
 ```bash
-sudo samba-tool user show alice
+sudo samba-tool user show userkone
 ```
 
 ```bash
-sudo samba-tool user show bob
+sudo samba-tool user show admkone
 ```
 
 ```bash
-sudo samba-tool user show charlie
+sudo samba-tool user show zabkone
 ```
 
 ---
@@ -899,7 +899,7 @@ sudo samba-tool user show charlie
 Depuis `smb-ad` :
 
 ```bash
-kinit alice@LAB.LOCAL
+kinit userkone@LAB.LOCAL
 ```
 
 Puis :
@@ -917,7 +917,7 @@ kdestroy
 Faire également le test avec :
 
 ```bash
-kinit bob@LAB.LOCAL
+kinit admkone@LAB.LOCAL
 ```
 
 ---
@@ -1435,9 +1435,9 @@ wbinfo -u
 On doit retrouver :
 
 ```text
-LAB\alice
-LAB\bob
-LAB\charlie
+LAB\userkone
+LAB\admkone
+LAB\zabkone
 ```
 
 Lister les groupes :
@@ -1459,16 +1459,16 @@ LAB\Zabbix-Users
 # 16. Tester les groupes d'un utilisateur
 
 ```bash
-wbinfo -r "LAB\alice"
+wbinfo -r "LAB\userkone"
 ```
 
 Puis :
 
 ```bash
-wbinfo -r "LAB\bob"
+wbinfo -r "LAB\admkone"
 ```
 
-Vérifier que `bob` possède le groupe `Linux-Admins`.
+Vérifier que `admkone` possède le groupe `Linux-Admins`.
 
 ---
 
@@ -1496,19 +1496,19 @@ Si `systemd` ou d'autres modules sont déjà présents, ne pas supprimer aveugl�
 Tester :
 
 ```bash
-getent passwd alice
+getent passwd userkone
 ```
 
 Puis :
 
 ```bash
-getent passwd bob
+getent passwd admkone
 ```
 
 Puis :
 
 ```bash
-getent passwd charlie
+getent passwd zabkone
 ```
 
 Tester les groupes :
@@ -1528,15 +1528,15 @@ getent group Zabbix-Users
 Enfin :
 
 ```bash
-id alice
+id userkone
 ```
 
 ```bash
-id bob
+id admkone
 ```
 
 ```bash
-id charlie
+id zabkone
 ```
 
 Le système Linux doit maintenant être capable de résoudre les identités provenant de l'Active Directory.
@@ -1709,10 +1709,10 @@ Résultat attendu :
 
 ## 3. Tester les droits sudo
 
-Se connecter avec `bob` :
+Se connecter avec `admkone` :
 
 ```bash
-ssh bob@10.10.93.106
+ssh admkone@10.10.93.106
 ```
 
 Puis :
@@ -1727,10 +1727,10 @@ Résultat :
 root
 ```
 
-Tester avec `alice` :
+Tester avec `userkone` :
 
 ```bash
-ssh alice@10.10.93.106
+ssh userkone@10.10.93.106
 ```
 
 Puis :
@@ -1796,7 +1796,7 @@ host smb-ad.lab.local
 ### Kerberos
 
 ```bash
-kinit alice@LAB.LOCAL
+kinit userkone@LAB.LOCAL
 klist
 kdestroy
 ```
@@ -1824,7 +1824,7 @@ wbinfo -g
 ### NSS
 
 ```bash
-getent passwd alice
+getent passwd userkone
 ```
 
 ```bash
@@ -1834,15 +1834,15 @@ getent group Linux-Users
 ### Identité
 
 ```bash
-id alice
+id userkone
 ```
 
 ```bash
-id bob
+id admkone
 ```
 
 ```bash
-id charlie
+id zabkone
 ```
 
 ### PAM/SSH
@@ -1850,20 +1850,20 @@ id charlie
 Tester :
 
 ```bash
-ssh alice@client
+ssh userkone@client
 ```
 
 ```bash
-ssh bob@client
+ssh admkone@client
 ```
 
 ```bash
-ssh charlie@client
+ssh zabkone@client
 ```
 
 ### Sudo
 
-Avec `bob` :
+Avec `admkone` :
 
 ```bash
 sudo whoami
@@ -1914,7 +1914,7 @@ root
                            │
               ┌────────────┼─────────────┐
               │            │             │
-           alice          bob         charlie
+           userkone          admkone         zabkone
               │            │             │
         Linux-Users   Linux-Admins   Zabbix-Users
               │            │
@@ -1929,9 +1929,9 @@ root
 
 | Utilisateur | Groupe AD      | Connexion SSH | `sudo` |
 | ----------- | -------------- | ------------: | -----: |
-| `alice`     | `Linux-Users`  |           Oui |    Non |
-| `bob`       | `Linux-Admins` |           Oui |    Oui |
-| `charlie`   | `Zabbix-Users` |           Non |    Non |
+| `userkone`     | `Linux-Users`  |           Oui |    Non |
+| `admkone`       | `Linux-Admins` |           Oui |    Oui |
+| `zabkone`   | `Zabbix-Users` |           Non |    Non |
 
 Cette configuration constituera la base pour la suite du TP, où `Zabbix-Users` pourra être utilisé sur une troisième machine hébergeant une application.
 
@@ -1962,3 +1962,710 @@ Une fois les deux premières machines fonctionnelles, la suite pourra être ajou
         │ SSH            │            │ AD users       │
         └────────────────┘            └────────────────┘
 ```
+
+
+
+
+
+
+
+# CHAPITRE 3 — CONNEXION DU LDAP AVEC UNE APPLI : ZABBIX
+
+Machine concernée :
+
+```text
+Hostname : server
+IP       : 10.10.93.106
+FQDN     : server.lab.local
+```
+
+Objectif :
+
+```text
+server
+   │
+   ├── DNS → smb-ad
+   │
+   ├── Certificat → reconait celui du smb-ad
+   │
+   └── ldaps → accès utilisateurs AD
+```
+
+---
+
+# 1. Preparation de l'ad pour la liaison avec l'AD
+
+## 1.1 Création d'un utilisateur de service
+
+
+Création de l'utilisateur :
+
+```bash
+sudo samba-tool user create zabserve
+```
+
+Verification :
+
+```bash
+sudo samba-tool user list
+```
+
+
+## 1.2 Creation d'une Oranisation Unit (OU)
+
+Creation du OU=App :
+
+```bash
+#sudo samba-tool ou create "OU=App,DC=lab,DC=local"  --> command no valide avec la version actuel de samba
+# Ce qu'il faut faire :
+
+# Installé les binaires necessaires :
+sudo apt update
+sudo apt install ldb-tools
+
+# Creer le OU 
+sudo ldbadd -H /var/lib/samba/private/sam.ldb <<'EOF'
+dn: OU=App,DC=lab,DC=local
+objectClass: top
+objectClass: organizationalUnit
+ou: App
+EOF
+```
+
+Verification, affichage de l'ensemble des OU : 
+
+```bash
+sudo ldbsearch -H /var/lib/samba/private/sam.ldb \
+  -b "OU=App,DC=lab,DC=local" \
+  -s base \
+  "(objectClass=*)" OU
+```
+
+
+## 1.3 Deplacement du user zabknoe dans cette OU
+
+
+On recupere deja le DN de l'utilisateur:
+
+```bash
+sudo ldbsearch -H /var/lib/samba/private/sam.ldb \
+  -b "DC=lab,DC=local" \
+  "(sAMAccountName=zabkone)" \
+  dn
+```
+
+Deplacement du user zabkone dans cette OU :
+
+```bash
+ sudo ldbrename \
+  -H /var/lib/samba/private/sam.ldb \
+  "CN=zabkone,CN=Users,DC=lab,DC=local" \
+  "CN=zabkone,OU=App,DC=lab,DC=local"
+```
+
+Verification par affichange du dn du user zabkone :
+
+```bash
+sudo ldbsearch -H /var/lib/samba/private/sam.ldb \
+  -b "OU=App,DC=lab,DC=local" \
+  "(sAMAccountName=zabkone)" \
+  dn
+```
+
+
+Verification par affichange des Objet du OU=App:
+
+```bash
+ldapsearch -x -LLL \
+  -H ldap://smb-ad.lab.local \
+  -D "Administrator@LAB.LOCAL" -W \
+  -b "OU=App,DC=lab,DC=local" \
+  "(objectClass=*)" dn
+```
+
+
+Afficher uniquement les utilisateurs du OU :
+
+```bash
+ldapsearch -x -LLL \
+  -H ldap://smb-ad.lab.local \
+  -D "Administrator@LAB.LOCAL" -W \
+  -b "OU=App,DC=lab,DC=local" \
+  "(objectClass=user)" dn sAMAccountName
+```
+
+
+
+
+# 2. Configuration préalable du client
+
+
+## 2.1 Vérifier le hostname
+
+```bash
+hostname -s #--> server
+```
+
+```bash
+hostname #--> server
+```
+
+```bash
+hostname -f #--> server.lab.local
+```
+
+Il faudrait fait en sorte que ces resultats soit OK.
+
+
+## 2.3 Indiquer le dns de comme dns à utiliser
+
+Nous allons indiquer le dns du serveur smb comme dns externe à utiliser par systemd-resolve. Ainsi si le stub listener envera les requete au dns de smb s'il ne trouve rien dans son cache ou dans son. Notre configuration restera fragile car toute redemarrage de systemd-resolve pourrait ecraser notre config
+
+
+Savegarder la config par defaut du fichier de la liste des dns de systemd-resolved:
+
+```bash
+cd /run/systemd/resolve
+cp resolv.conf resolv.conf_saved_default_conf
+vim resolv.conf
+```
+Contenu :
+
+```conf
+nameserver 10.10.93.103
+search lab.local
+```
+
+Tester cette nouvelle config :
+
+```bash
+host smb-ad
+```
+
+Ce qu'il faudrait faire en cas de redemarrage du serveur, ce qui ecrasera la config :
+
+Savegarder la config par defaut du fichier principal indiquant le dns:
+
+```bash
+cd /etc/
+cp resolv.conf resolv.conf_saved_default_conf
+vim resolv.conf
+```
+Contenu :
+
+```conf
+nameserver 10.10.93.103
+search lab.local
+```
+
+
+Tester cette nouvelle config :
+
+```bash
+host smb-ad
+```
+
+
+## 3 Ajouter le CA de l'ad samba dans le trustore du systeme
+
+
+### 3.1 Recuperer le CA du serveur samba :
+
+```bash
+su - root
+cd 
+scp -rp smb-ad:/var/lib/samba/private/tls/ca.pem
+
+```
+
+### 3.2 Verification optionnelles
+
+Verifions la contrainte CA:TRUE qui confirme que c'est une CA et non un certificat standard : 
+
+```bash
+openssl x509 -in ca.pem -noout -text | grep -A 1 "Basic Constraints"
+
+```
+
+Verifier que le certificat est autosigné :
+
+```bash
+openssl x509 -in ca.pem -noout -subject -issuer
+```
+
+Resultats attendus :
+
+```text
+subject=CN = Mon_Entreprise_CA, O = Ma_Societe, C = FR
+issuer=CN = Mon_Entreprise_CA, O = Ma_Societe, C = FR
+```
+
+Extraction des informations importante du CA :
+
+```bash
+openssl x509 -in ca.pem -noout -subject -issuer -dates -dates -purpose -fingerprint
+```
+
+Afficher l'integrité des informations du CA :
+
+```bash
+openssl x509 -in ca.pem -noout -text
+```
+
+### 3.3 Ajout du certificat au trustore du system
+
+Commande correspondant au system ubuntu :
+
+```bash
+# Ajouter les bon droit si necessaire
+sudo chown root:root ca.pem
+sudo chmod 644 ca.pem
+#
+sudo cp ca.pem /usr/local/share/ca-certificates/ca_smb.crt
+sudo update-ca-certificates
+```
+
+### 3.4 Verification
+
+```bash
+sudo apt install p11-kit   # ce paquet n'est pas toujours installé par defaut
+trust list > tmp_file
+vim tmp_file
+#recherche avec le nom du CA
+```
+
+## 4. Test d'ouverture de connexion SSL/TLS avec le serveur
+
+Test avec precision du CA file :
+
+```bash
+openssl s_client -connect smb-ad.lab.local:636 -CAfile /etc/ssl/certs/ca-certificates.crt
+```
+
+Test sans precision du CA file :
+
+```bash
+openssl s_client -connect ldap.monclient.fr:636
+```
+
+
+
+## 5. Test ldap search pour valider l'authentification avec le serveur ldap
+
+
+### 5.1 Recherche des informatons de l'utilisateur de service avec l'admin
+
+
+```bash
+ldapsearch -x -LLL \
+  -H ldaps://smb-ad.lab.local \
+  -D "Administrator@LAB.LOCAL" -W \
+  -b "DC=lab,DC=local" \
+  "(sAMAccountName=admkone)" dn
+```
+
+Resultats :
+
+```text
+dn: CN=admkone,CN=Users,DC=lab,DC=local
+...
+objectClass: user
+...
+cn: admkone
+...
+sAMAccountName: admkone
+...
+memberOf: CN=Linux-Admins,CN=Users,DC=lab,DC=local
+```
+
+
+### 5.2 Recherche d'un user applicative avec le compte de service
+
+
+Test 1 : Le test d'identification anonyme (Le "Ping" LDAP) :
+
+```bash
+LDAPTLS_CACERT=ca.pem ldapsearch -H ldaps://smb-ad.lab.local:636 -x -b "" -s base
+```
+
+
+Test 2 : Le test d'authentification et de recherche (Le test réel):
+
+
+```bash
+ldapsearch -H ldaps://smb-ad.lab.local:636 \
+  -x \
+  -D "CN=Svc-App-Binding,OU=Service Accounts,DC=lab,DC=local" \
+  -W \
+  -b "DC=lab,DC=local" "(sAMAccountName=zabkone)"
+```
+
+
+- D : Le Bind DN (le compte de service qui a le droit de chercher).
+- W : Demande le mot de passe du compte de service de manière sécurisée dans le terminal.
+- b : La Base DN, l'endroit de l'annuaire où commence la recherche.
+- "(sAMAccountName=...)" : Le filtre de recherche.
+
+
+
+## 6. Installation et configuration de Grafana
+
+ Installer grafana :
+
+```bash
+## Installer les binaires necessaires
+sudo apt update
+sudo apt install -y apt-transport-https wget
+## Ajouter la clé et le dépôt Grafana :
+sudo mkdir -p /etc/apt/keyrings
+wget -q -O - https://apt.grafana.com/gpg.key | sudo gpg --dearmor -o /etc/apt/keyrings/grafana.gpg
+## Puis :
+echo "deb [signed-by=/etc/apt/keyrings/grafana.gpg] https://apt.grafana.com stable main" | sudo tee /etc/apt/sources.list.d/grafana.list
+## Installer grafana
+sudo apt update
+sudo apt install -y grafana
+## Active et démarre le service :
+sudo systemctl enable --now grafana-server
+sudo systemctl status grafana-server
+```
+Tester interface :
+
+http://IP_DU_SERVEUR:3000
+
+login par defaut : 
+
+admin/admin
+
+##  7. Connecter grafana au ldap
+
+### 7.1  Recuperation des informations necessaires à la configurations:
+
+- DN de l'utilisateur de service
+
+```bash
+sudo ldbsearch -H /var/lib/samba/private/sam.ldb -b "DC=lab,DC=local" "(sAMAccountName=zabserve)" dn
+```
+
+- DN du OU dans lequel chercher les utilisateurs
+
+```bash
+sudo ldbsearch -H /var/lib/samba/private/sam.ldb -b "DC=lab,DC=local" "(sAMAccountName=zabkone)" dn
+```
+
+- Resumer dess infos :
+
+````
+DN_of_service_user: CN=zabserve,CN=Users,DC=lab,DC=local
+son mot de pass : ****
+DN_of_users_group: OU=App,DC=lab,DC=local
+hostname du serveur ldap : smb-ad.lab.local
+````
+
+### 7.2 Configuration de grafana
+
+
+Editer le fichier de configuration de grafana:
+
+```bash
+sudo nano /etc/grafana/ldap.toml
+```
+
+contenu du fichier :
+
+```TOM
+# Samba AD / LDAPS
+# Lab configuration
+
+[[servers]]
+
+# Samba AD Domain Controller
+host = "smb-ad.lab.local"
+port = 636
+
+# LDAPS
+use_ssl = true
+start_tls = false
+
+# Lab uniquement : ne vérifie pas le certificat TLS
+ssl_skip_verify = true
+
+# Compte de service utilisé pour rechercher les utilisateurs
+bind_dn = "CN=zabserve,CN=Users,DC=lab,DC=local"
+bind_password = 'TON_MOT_DE_PASSE'
+
+# Recherche l'utilisateur avec son login AD
+search_filter = "(sAMAccountName=%s)"
+
+# Les utilisateurs à authentifier se trouvent dans cette OU
+search_base_dns = ["OU=App,DC=lab,DC=local"]
+
+# Attributs Active Directory
+[servers.attributes]
+name = "givenName"
+surname = "sn"
+username = "sAMAccountName"
+member_of = "memberOf"
+email = "mail"
+
+# Pour le premier test, tous les utilisateurs trouvés
+# dans LDAP auront le rôle Viewer dans Grafana.
+[[servers.group_mappings]]
+group_dn = "*"
+org_role = "Viewer"
+```
+
+Activer le LDAP dans grafana :
+
+```bash
+sudo nano /etc/grafana/grafana.ini
+```
+
+Verifier :
+
+```INI
+[auth.ldap]
+enabled = true
+config_file = /etc/grafana/ldap.toml
+```
+
+Redemarrer le service de grafana :
+
+```bash
+sudo systemctl restart grafana-server
+```
+
+##  7. Test de connexion avec l'utilisateur de l'AD
+
+TEST EST OK avec Grafana.
+
+
+# Conclusion : lessons à tirer du tp
+
+
+
+## 1. Comprendre les utilisateurs dans les configurations LDAP
+
+Dans l'univers LDAP / Samba AD, vous entendrez souvent parler de deux rôles d'utilisateurs distincts. Il est crucial de ne pas les confondre.
+
+### 1.1 Le "Bind DN" (L'utilisateur de liaison / Compte de Service)
+
+
+- Qui est-ce ? C'est un compte utilisateur créé dans votre Samba AD (souvent nommé svc-app-auth ou ldap-bind).
+
+- Son rôle : C'est l'identifiant que l'application utilise pour ouvrir la porte du serveur LDAP. Par défaut, l'AD n'autorise pas les recherches anonymes. L'application doit donc d'abord prouver qui elle est avec ce compte pour avoir le droit de lire l'annuaire.
+
+- Son rôle : C'est l'identifiant que l'application utilise pour ouvrir la porte du serveur LDAP. Par défaut, l'AD n'autorise pas les recherches anonymes. L'application doit donc d'abord prouver qui elle est avec ce compte pour avoir le droit de lire l'annuaire.
+
+- Sécurité : Ce compte n'a besoin d'aucun privilège d'administrateur. Un simple utilisateur standard du domaine possède le droit de lire l'annuaire.
+
+### 1.2 L'utilisateur recherché (L'utilisateur final)
+
+- Qui est-ce ? C'est l'utilisateur humain (par exemple, vous ou un collègue) qui essaie de se connecter à l'interface de l'application (ex: Nextcloud, Gitlab, Sonarqube).
+
+- Son rôle : L'utilisateur tape son identifiant (jean.dupont) et son mot de passe sur la page de connexion de l'application.
+
+- Le mécanisme :
+
+1. L'application se connecte à Samba AD avec le Bind DN.
+2. L'application cherche le DN complet de jean.dupont grâce au filtre (sAMAccountName=jean.dupont).
+3. Une fois trouvé, l'application tente une "deuxième liaison" LDAP, mais cette fois-ci en utilisant le DN de Jean et le mot de passe que Jean a tapé. Si Samba AD dit "Oui", l'utilisateur est connecté.
+
+
+### 1.3 Synthèse des champs à remplir dans votre Application
+
+Lorsque vous configurerez votre application, voici la correspondance des champs :
+
+- LDAP URL / Host : ldaps://smb-ad.lab.local:636
+- Base DN : DC=lab,DC=local (L'application cherchera dans tout le domaine).
+- Bind DN (User DN) : CN=Svc-App-Binding,CN=Users,DC=lab,DC=local (Le compte de l'application).
+- Password : Le mot de passe de ce compte de service.
+- User Login Filter : (sAMAccountName=%s) (Le %s sera remplacé automatiquement par l'identifiant saisi par l'utilisateur humain).
+
+
+### 4. Comprendre le DN (Distingush Name)
+
+Dans un Active Directory, on trouve différents types d'objets, notamment :
+
+- des utilisateurs ;
+- des groupes ;
+- des ordinateurs ;
+- des comptes de service ;
+- des unités d'organisation (OU) ;
+etc.
+
+Chaque objet possède un DN (Distinguished Name), qui permet de l'identifier de manière unique dans l'annuaire LDAP.
+
+Le DN peut être vu comme le chemin complet d'un objet dans l'arborescence LDAP.
+
+Par exemple, un utilisateur peut avoir le DN suivant :
+
+
+```text
+CN=admkone,CN=Users,DC=lab,DC=local
+```
+
+On peut le décomposer ainsi :
+
+```text
+CN=admkone
+│
+├── CN = Common Name
+│   └── nom de l'objet : admkone
+│
+CN=Users
+│
+├── conteneur dans lequel se trouve l'utilisateur
+│
+DC=lab,DC=local
+│
+└── domaine Active Directory
+```
+
+
+
+Le DN permet donc de déterminer où se trouve l'objet dans l'arborescence de l'annuaire et de l'identifier de manière unique.
+
+### 4.1. CN, OU et DC
+
+Un DN est constitué de plusieurs composants.
+
+Les plus courants sont :
+
+
+| Élément | Signification       | Exemple           |
+| ------- | ------------------- | ----------------- |
+| `CN`    | Common Name         | `CN=admkone`      |
+| `OU`    | Organizational Unit | `OU=Linux`        |
+| `DC`    | Domain Component    | `DC=lab,DC=local` |
+
+
+```text
+CN=admkone,OU=Linux,OU=Users,DC=lab,DC=local
+```
+
+```text
+LAB.LOCAL
+│
+└── OU=Users
+    │
+    └── OU=Linux
+        │
+        └── CN=admkone
+```
+
+
+### 4.2. Le conteneur Users
+
+Lorsqu'un utilisateur est créé avec les paramètres par défaut d'Active Directory, il peut être placé dans :
+
+
+```text
+CN=Users,DC=lab,DC=local
+```
+
+Il faut cependant faire attention : CN=Users est un conteneur et non une OU.
+
+Une OU est identifiée par OU= :
+
+```text
+OU=Users,DC=lab,DC=local
+```
+
+alors que le conteneur par défaut est :
+
+```text
+CN=Users,DC=lab,DC=local
+```
+Cette distinction est importante notamment lorsqu'on travaille avec LDAP et les stratégies de gestion des objets.
+
+
+### 4.3. Organisation des objets dans une entreprise
+
+Dans un environnement de production, on ne laisse généralement pas tous les objets dans les conteneurs par défaut.
+
+Les objets peuvent être organisés dans différentes OU (Organizational Units) afin de structurer l'annuaire et de pouvoir appliquer des politiques différentes à différentes populations.
+
+Par exemple :
+
+```text
+DC=entreprise,DC=local
+│
+├── OU=Users
+│   ├── OU=IT
+│   ├── OU=Finance
+│   ├── OU=RH
+│   └── OU=Production
+│
+├── OU=Groups
+│
+├── OU=Computers
+│   ├── OU=Servers
+│   ├── OU=Workstations
+│   └── OU=Linux
+│
+└── OU=Admins
+```
+
+
+On pourrait ainsi avoir :
+
+```text
+CN=alice,OU=Finance,OU=Users,DC=entreprise,DC=local
+```
+
+et : 
+
+```text
+CN=bob,OU=IT,OU=Users,DC=entreprise,DC=local
+```
+
+Les utilisateurs sont alors organisés en fonction de leur rôle ou de leur service.
+
+
+### 4.4. OU et groupes : deux notions différentes
+
+
+Il est important de ne pas confondre OU et groupe.
+
+Une OU sert principalement à organiser les objets et à définir le périmètre d'application de certaines politiques.
+
+Un groupe sert principalement à regrouper des utilisateurs ou des ordinateurs afin de leur attribuer des droits ou des accès.
+
+Par exemple :
+
+```text
+OU=Users
+│
+├── Alice
+├── Bob
+└── Charlie
+
+Groupes
+│
+├── Linux-Users
+├── Linux-Admins
+└── Zabbix-Users
+```
+
+Alice peut par exemple appartenir à :
+
+```text
+Linux-Users
+Zabbix-Users
+```
+
+tandis que Bob peut appartenir à :
+
+```text
+Linux-Admins
+```
+
+L'OU répond donc plutôt à la question :
+
+Où l'objet est-il organisé dans l'annuaire ?
+
+Alors que le groupe répond plutôt à :
+
+À quelle population ou quels droits cet objet est-il associé ?
+
+
