@@ -1,0 +1,93 @@
+----------------------------------EXPLORATION À FAIRE------------------------------------
+
+1 - Exploration de nsswitch config
+2 - Comprendre l'historique/hierarchie des utilistaires reseaux utilisé entre netplan, systemd-network et network manager
+3 - Terminer le petit cours que j'ai commencer
+
+
+
+
+----------------------------------TP A REDIGER PUIS FAIRE------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+TODO TP A FAIRE : (ce qui doit apparaitre dans mon tp)
+-------------------------------------------------------------------------------
+
+
+t1 :
+- faire utiliser un dns de mon reseau openstack par mon systme (sur le domaine associé)
+
+t2:
+- deux reseau privé pour une machine
+- associer des domaines à chaque interface pour chaque reseau ?
+- associé des domaine à chaque reseau ?
+
+
+t3:
+- deployer un config manuelle netplan/network manager voir manuelle depuis openstack (ip+dns+getway)
+- puis une config automatique (un serveur dhcp qui donne automatiquement au machine ces meme info)
+
+t4 : zone/domaine sur internet
+
+requeter le registre tlp pour voir si un domaine y existe
+contacter les dns de la zone pour avoir l'ip d'un hote du domaine
+acheter un domaine puis créér une zone chez un cloud pour administré le domaine
+
+
+tp5:
+
+utiliser bind9 et creer deux serveurs dns . un domaine et un domaine deleguer. des entrée dans chaque doamine et une servuer client pour tester des resolutions.
+
+--> last reading : 6. /etc/resolv
+
+
+
+
+TO REGISGISTER 
+-------------------------------------------------------------------------
+
+
+** domaine = nom essentiellement
+** zone = ensemble d'enregistrement dns d'un domaine et enventuellement de ses sous-domaine (un fichier de configuration)
+** serveurs DNS = serveurs qui diffusent les enregistrement des zones (sur lequel est deployer le fichier de configuration de la zone)
+
+lorsqu'on achete un domaine,  par exemple allow.com :
+
+- dans  le registre du TLP .com, on enregistre le propriétaire et l'ensemble des serveurs qui heberge la zone dedié au domaine.
+
+lorsqu'on veut resoudre un dns d'un domaine :
+
+- le client cherche le domaine dans le registre du TLP
+- Si le domaine y existe, le client demande la liste des serveurs dns qui heberges la zone pointé par le domaine.
+- Le client demande à ces serveurs dns de resoudre le dns . Si l'enregistrement existe dans la zone, les serveurs renvoie alors l'ip associé.
+(to correct by chatgpt)
+
+et demander à chaque comment l'inverse se fait ? (comment on trouve le dns d'une ip)
+
+definition que moi meme je donne à la zone :
+
+zone = espace technique qui administre les enregistrements d'un domaine
+espace technique = fichier de zone (base de données de l'ensemble des enregistrement) + serveurs dns qui diffuse ces enregistrement sur internet + l'entité administrative qui administre ces enregistrement (faut il ajouter ce dernier ?)
+
+**derniers questions :
+
+- supposons deux domaines (mazone.com et tee.mazone.com) administrés par deux services (ia et data) respectivement mais hebergé sur le meme serveur dns.
+est une situation qui peux exister ? si oui, chaque serice n'aurait droit que de gerer sa zone ? dans ce cas la notion de l'entité administrative interviens t'il dans la definition de zone ?
+
+- Faut il retenir ma definition oubien celle de chatte (Une zone DNS est une partie de l'espace de noms DNS qui est administrée par une organisation ou un ensemble de serveurs DNS) ?
+selon cette definition, domaine=nom et la zone = ensemble d'enregistrement dns (essentiellement) sous ce nom et des serveurs dns hebergent cette zone
+dans ce cas, l'entité administrative est elle importante dans la definition ?
+
+car chatte resume en : 
+
+Une zone est une partie de l'espace DNS gérée comme une unité administrative par un ou plusieurs serveurs DNS.
+
