@@ -11,32 +11,48 @@ Comment les configurations reseaux sont propagées sous linux ?
 
 
 ```
-                    CONFIGURATION ADMIN
-                           │
-              ┌────────────┴────────────┐
-              │                         │
-           Netplan                 Configuration
-        (si utilisé)              directe
-              │
-       génère une config
-              │
-       ┌──────┴───────┐
-       │              │
-       ▼              ▼
-NetworkManager   systemd-networkd
-       │              │
-       └──────┬───────┘
-              │
-              ▼
-        Interfaces réseau
-       eth0 / ens18 / enp...
-              │
-              ▼
-        DNS / routes / IP
-              │
-              ▼
-     systemd-resolved
-       (si utilisé)
+                         CONFIGURATION ADMIN
+                                │
+                   ┌────────────┴────────────┐
+                   │                         │
+                Netplan                Configuration
+             (si utilisé)                  directe
+                   │                         │
+                   │                         │
+            génère/applique                  │
+             une configuration               │
+                   │                         │
+             ┌─────┴─────┐                   │
+             │           │                   │
+             ▼           ▼                   │
+   systemd-networkd   NetworkManager ◄───────┘
+             │           │
+             │           │
+             │           ├──────────► Wi-Fi
+             │           │              │
+             │           │              ▼
+             │           │             DHCP
+             │           │              │
+             │           │              ▼
+             │           │        IP / Gateway / DNS
+             │           │
+             │           │
+             ├───────────┼───────────────────┐
+             │           │                   │
+             │           │                   │
+             ▼           ▼                   ▼
+       Interface     Interface        systemd-resolved
+        réseau        réseau             (si utilisé)
+       eth0/ens18     wlan0                   │
+             │           │                    │
+             │           │                    ▼
+             │           │          /run/systemd/resolve/
+             │           │                    │
+             └───────────┴────────────────────┘
+                         │
+                         ▼
+                  IP / routes / DNS
+
 ```
 
 
