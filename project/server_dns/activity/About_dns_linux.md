@@ -261,13 +261,60 @@ La configuration du dhcp à contacter se propagerait depuis netplan et passant p
 
 
 
-
-
 ## TP on dns thematique
 
 
+### TP 1 : Prise en main de bind9
+
+- Mise en place de bind9
+- Comprension de ses abstractions : zone, delegation , dns recursif et autoritatif
+- Mise en place d'une architecture client-serveur :
+- le serveur bind9 avec deux domaines (basta.fr et nok.basta.fr)
+- le client testera le resoudre des hostnames dejà enregistré sur le serveur.
+- mise en oeuvre de la notion de zone, zone delegué, 
+- Comprendre comment se materialise les notions de recursif et autoritatif , zone et zone deleguée
 
 
+
+
+### TP 2 : Serveur DNS recursif et autoritatif
+
+- Architecture avec deux serveurs pour 2 domaines
+- L'un configurer en recursif et l'autre en autoritatif 
+
+
+
+### TP 3 : Domaine de recherche
+
+- architecture: deux servurs et un client
+- le client et chaque serveur sont dans deux reseaux distinct.
+- ces deux reseaux doivre etre distincts.
+(possible avec openstack , il faudrait verifier)
+- sur chaque serveur, il y' a un dns publiant une zone.
+- parametré le client pour chaque interface avec (root, dns et domaine de recherche)
+- Tester 
+
+
+### TP 3 : Top level domaine
+
+- acheter un domaine
+- creer une zone dans gcc
+- enregistré ce domaine dans l'annuaire du tlp avec la zone créér
+- sous terminal linux, faire une requete pour retrouver mon domaine dans le tlp
+- faire une requete pour avoir les serveurs de dns de la zone ou des zones pointé par le domaine
+- Repondre à la question suivante :
+Si une zone est créér par un sous domaine, qu'est-ce qui est enregistré dans le registre ? 
+-> simplement la zone du domaine de base ? c'est cette zone qui indiquera par delegation ou se trouve la zone du sous domaine  ?
+
+
+### TP 0 : Configuration Reseau
+
+- Architecture : client + serveur(dns+dhcp)
+- Les deux seront configuré au niveau reseau avec netplan
+- Avec netplan, metre une config static (ip+route+dns) appliqué au client:
+- observé ce qui se passe au niveau de network manager et systemd-networkd
+- Refaire une config avec netplan pointé sur le serveur dhcp.
+- demander les infos au dhcp et voir ce qui se passe à tous les niveaux 
 
 
 
